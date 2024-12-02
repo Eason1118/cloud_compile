@@ -1,0 +1,25 @@
+client:
+  running: True
+  env:
+    - name: BRANCH
+      value: "develop"
+    - name: BINARY_NAME
+      value: "All"
+    - name: VERSION_ID
+      value: "518314"
+    - name: COMPILE
+      value: "Release"
+    - name: TCMALLOC
+      value: "On"
+    - name: ASAN
+      value: "Off"
+    - name: TARGET
+      value: "all"
+    - name: LOCATION
+      value: "inner"
+    - name: RUN_PATH
+      value: "/cloud_data/build_ro_server"
+    - name: SCRIPTS_PATH
+      value: "/cloud_data/tmp_space/ro_builder/global_build"
+    - name: MAKE_NUM
+      value: 160

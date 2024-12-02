@@ -1,0 +1,67 @@
+{{- if .Values.client.running }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: {{ template "client.uname" . }}
+  name: {{ template "client.uname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: {{ template "imagepullsecret.uname" . }}
+      containers:
+        - image: {{ .Values.client.image.repository }}:{{ .Values.client.image.tag }}
+          name: {{ template "client.uname" . }}-image
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true 
+          env:
+            - name: PROCESS_TARGET
+              value: {{ required "client.name is required" .Values.client.name }}
+            - name: YADCC_SCHEDULER_ADDR
+              value: {{  template "scheduler.svc" . }}
+            - name: YADCC_MAX_REMOTE_TASKS
+              value: "{{ required "client.yadcc.maxRemoteTasks is required" .Values.client.yadcc.maxRemoteTasks }}"
+            - name: YADCC_TOKEN
+              value: {{ required "yadccToken is required" .Values.yadccToken }}
+            - name: NFS_HOST
+              value: {{ required "client.nfs.host is required" .Values.client.nfs.host }}
+            - name: NFS_PATH
+              value: {{ required "client.nfs.path is required" .Values.client.nfs.path }}
+            - name: NFS_ARGS
+              value: {{ required "client.nfs.args is required" .Values.client.nfs.args }}
+          {{- range .Values.client.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}      
+          command:
+            - sh
+            - -c
+            - |
+              /start.sh &
+              sleep 5
+              set -e
+              cd "${SCRIPTS_PATH}"
+              echo "====Start build_gamelib====="
+              bash build_gamelib.sh
+              echo "====Done build_gamelib====="
+              echo "====Start build_code====="
+              bash build_code.sh
+              echo "====Done build_code====="
+          ports:
+            - containerPort: 8335
+              name: client-port
+          resources:
+            limits:
+              cpu: {{ required "client.cpuLimit is required" .Values.client.cpuLimit }}
+              memory: {{ required "client.memoryLimit is required" .Values.client.memoryLimit }}
+              ephemeral-storage: {{ required "client.ephemeralStorageLimit is required" .Values.client.ephemeralStorageLimit }}
+            requests:
+              cpu: {{ required "client.cpuRequire is required" .Values.client.cpuRequire }}
+              memory: {{ required "client.memoryRequire is required" .Values.client.memoryRequire }}
+{{- end }}
+

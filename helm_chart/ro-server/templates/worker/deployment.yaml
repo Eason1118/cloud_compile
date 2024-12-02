@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+  name: {{ template "worker.uname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.worker.replicas }}
+  selector:
+    matchLabels:
+      {{- include "worker.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "worker.labels" . | nindent 8 }}
+    spec:
+      {{- include "vkeServerlessTolerations" . | nindent 6 }}
+      imagePullSecrets:
+        - name: {{ template "imagepullsecret.uname" . }}
+      containers:
+        - image: {{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}
+          name: {{ template "worker.uname" . }}-image
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PROCESS_TARGET
+              value: {{ required "worker.name is required" .Values.worker.name }}
+            - name: YADCC_SCHEDULER_ADDR
+              value: {{  template "scheduler.svc" . }}
+            - name: YADCC_MAX_REMOTE_TASKS
+              value: "{{ required "worker.yadcc.maxRemoteTasks is required" .Values.worker.yadcc.maxRemoteTasks }}"
+            - name: YADCC_TOKEN
+              value: {{ required "yadccToken is required" .Values.yadccToken }}
+          command: ["/usr/local/yadcc/yadcc-daemon"]
+          args:
+            - "--scheduler_uri"
+            - "flare://{{  template "scheduler.svc" . }}"
+            - "--token"
+            - "{{ required "yadccToken is required" .Values.yadccToken }}"
+            - "--max_remote_tasks"
+            - "{{ required "worker.yadcc.maxRemoteTasks is required" .Values.worker.yadcc.maxRemoteTasks }}"
+          ports:
+          - containerPort: 8335
+            name: worker-port
+          resources:
+            limits:
+              cpu: {{ required "worker.cpuLimit is required" .Values.worker.cpuLimit }}
+              memory: {{ required "worker.memoryLimit is required" .Values.worker.memoryLimit }}
+              ephemeral-storage: {{ required "worker.ephemeralStorageLimit is required" .Values.worker.ephemeralStorageLimit }}
+            requests:
+              cpu: {{ required "worker.cpuRequire is required" .Values.worker.cpuRequire }}
+              memory: {{ required "worker.memoryRequire is required" .Values.worker.memoryRequire }}
+    

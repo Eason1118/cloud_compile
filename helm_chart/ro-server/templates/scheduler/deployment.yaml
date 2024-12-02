@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "scheduler.labels" . | nindent 4 }}
+  name: {{ template "scheduler.uname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.scheduler.replicas }}
+  selector:
+    matchLabels:
+      {{- include "scheduler.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "scheduler.labels" . | nindent 8 }}
+    spec:
+      {{- include "vkeServerlessTolerations" . | nindent 6 }}
+      imagePullSecrets:
+        - name: {{ template "imagepullsecret.uname" . }}
+      containers:
+        - image: {{ .Values.scheduler.image.repository }}:{{ .Values.scheduler.image.tag }}
+          name: {{ template "scheduler.uname" . }}-image
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: YADCC_TOKEN
+              value: {{ required "yadccToken is required" .Values.yadccToken }}
+            - name: YADCC_SERVANT_TOKEN
+              value: {{ required "yadccServantTokens is required" .Values.yadccServantTokens }}
+            - name: PROCESS_TARGET
+              value: {{ required "scheduler.name is required" .Values.scheduler.name }}
+          command:
+            - "/usr/local/yadcc/yadcc-scheduler"
+          args:
+            - "--acceptable_user_tokens"
+            - "{{ required "yadccToken is required" .Values.yadccToken }}"
+            - "--acceptable_servant_tokens"
+            - "{{ required "yadccServantTokens is required" .Values.yadccServantTokens }}"
+            - "--inspect_credential"
+            - "roo:yadcc"
+          ports:
+            - containerPort: {{ .Values.scheduler.port }}
+              name: scheduler-svc
+          resources:
+            limits:
+              cpu: {{ required "scheduler.cpuLimit is required" .Values.scheduler.cpuLimit }}
+              memory: {{ required "scheduler.memoryLimit is required" .Values.scheduler.memoryLimit }}
+              ephemeral-storage: {{ required "scheduler.ephemeralStorageLimit is required" .Values.scheduler.ephemeralStorageLimit }}
+            requests:
+              cpu: {{ required "scheduler.cpuRequire is required" .Values.scheduler.cpuRequire }}
+              memory: {{ required "scheduler.memoryRequire is required" .Values.scheduler.memoryRequire }}
+              

@@ -1,0 +1,77 @@
+service: ro-server-ci
+# 镜像仓库key
+imagePullSecret: "eyJhdXRocyI6eyJodHRwczovL2hhcmJvci4xMjN1LmNvbS8iOnsidXNlcm5hbWUiOiJyb2JvdC1yby1zZXJ2ZXItY2kiLCJwYXNzd29yZCI6IjNkTnphNWFKRWVnT3BvMUtuaE5JT2FvNXJLZ09RVGI5IiwiZW1haWwiOiJyby1zZXJ2ZXItY2lAaHVhbmxlLmNvbSIsImF1dGgiOiJjbTlpYjNRdGNtOHRjMlZ5ZG1WeUxXTnBPak5rVG5waE5XRktSV1ZuVDNCdk1VdHVhRTVKVDJGdk5YSkxaMDlSVkdJNSJ9fX0="
+
+yadccToken: rocompileclient
+yadccServantTokens: rocompileservant
+# icecc客户端
+client:
+  running: False
+  name: client
+  replicas: 1
+  cpuLimit: 16
+  memoryLimit: 32Gi
+  ephemeralStorageLimit: 10Gi
+  cpuRequire: 16
+  memoryRequire: 32Gi
+  image:
+    repository: harbor.123u.com/ro-server/centos7.9-gcc9.2.0-yadcc
+    tag: v1.1.0
+  nfs:
+    args: -o vers=3,nolock,proto=tcp,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport
+    path: /cloud_data
+    host: ""
+  yadcc:
+    maxRemoteTasks: 40
+  env:
+    - name: RUN_PATH
+      value: "${RUN_PATH}"
+    - name: BRANCH
+      value: "${BRANCH}"
+    - name: BINARY_NAME
+      value: "${BINARY_NAME}"
+    - name: VERSION_ID
+      value: "${FLOW_ID}"
+    - name: COMPILE
+      value: "${COMPILE}"
+    - name: TCMALLOC
+      value: "${TCMALLOC}"
+    - name: ASAN
+      value: "${ASAN}"
+    - name: TARGET
+      value: "${TARGET}"
+    - name: LOCATION
+      value: "${LOCATION}"
+    - name: SCRIPTS_PATH
+      value: "${GLOBAL_SCRIPTS_PATH}"
+    - name: MAKE_NUM
+      value: ${MAKE_NUM}
+
+# 调度端
+scheduler:
+  name: scheduler
+  replicas: 1
+  port: 8336
+  image:
+    repository: harbor.123u.com/ro-server/centos7.9-gcc9.2.0-yadcc
+    tag: v1.1.0
+  cpuLimit: 4
+  memoryLimit: 4Gi
+  ephemeralStorageLimit: 10Gi
+  cpuRequire: 2
+  memoryRequire: 2Gi
+
+# 编译端
+worker:
+  name: worker
+  replicas: 12
+  image:
+    repository: harbor.123u.com/ro-server/centos7.9-gcc9.2.0-yadcc
+    tag: v1.1.0
+  cpuLimit: 16
+  memoryLimit: 32Gi
+  ephemeralStorageLimit: 10Gi
+  cpuRequire: 16
+  memoryRequire: 32Gi
+  yadcc:
+    maxRemoteTasks: 40
