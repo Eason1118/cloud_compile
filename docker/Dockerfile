@@ -32,29 +32,29 @@ RUN yum -y update && \
 # 设置环境变量
 ENV LANG=C.UTF-8 \
     TZ=Asia/Shanghai \
-    PATH=/usr/local/gcc-9.2.0/bin:/usr/local/go/bin:/opt/cmake-3.24.2-linux-x86_64/bin:$PATH \
-    LD_LIBRARY_PATH=/usr/local/gcc-9.2.0/lib64:$LD_LIBRARY_PATH
+    PATH=/usr/local/gcc-9.5.0/bin:/usr/local/go/bin:/opt/cmake-3.24.2-linux-x86_64/bin:$PATH \
+    LD_LIBRARY_PATH=/usr/local/gcc-9.5.0/lib64:$LD_LIBRARY_PATH
 
 # 下载 GCC 和依赖库并安装
 WORKDIR /usr/local/src
-RUN wget -q https://ftp.gnu.org/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.gz && \
+RUN wget -q https://ftp.gnu.org/gnu/gcc/gcc-9.5.0/gcc-9.5.0.tar.gz && \
     wget -q https://gmplib.org/download/gmp/gmp-6.1.2.tar.bz2 && \
     wget -q https://www.mpfr.org/mpfr-4.0.2/mpfr-4.0.2.tar.bz2 && \
     wget -q https://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz && \
     wget -q http://isl.gforge.inria.fr/isl-0.18.tar.bz2 && \
-    tar -xvzf gcc-9.2.0.tar.gz && \
+    tar -xvzf gcc-9.5.0.tar.gz && \
     tar -xvjf gmp-6.1.2.tar.bz2 && \
     tar -xvjf mpfr-4.0.2.tar.bz2 && \
     tar -xvzf mpc-1.1.0.tar.gz && \
     tar -xvjf isl-0.18.tar.bz2 && \
-    mv gmp-6.1.2 gcc-9.2.0/gmp && \
-    mv mpfr-4.0.2 gcc-9.2.0/mpfr && \
-    mv mpc-1.1.0 gcc-9.2.0/mpc && \
-    mv isl-0.18 gcc-9.2.0/isl && \
+    mv gmp-6.1.2 gcc-9.5.0/gmp && \
+    mv mpfr-4.0.2 gcc-9.5.0/mpfr && \
+    mv mpc-1.1.0 gcc-9.5.0/mpc && \
+    mv isl-0.18 gcc-9.5.0/isl && \
     mkdir gcc-build && cd gcc-build && \
-    ../gcc-9.2.0/configure --prefix=/usr/local/gcc-9.2.0 --enable-languages=c,c++ --disable-multilib && \
+    ../gcc-9.5.0/configure --prefix=/usr/local/gcc-9.5.0 --enable-languages=c,c++ --disable-multilib && \
     make -j$(nproc) && make install && \
-    cd /usr/local/src && rm -rf gcc-9.2.0 gcc-build *.tar.*
+    cd /usr/local/src && rm -rf gcc-9.5.0 gcc-build *.tar.*
 
 # 下载并安装 Go
 ARG GOLANG_VERSION=1.23.2
@@ -68,12 +68,24 @@ RUN wget -q https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}
     tar -zxvf cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz -C /opt && \
     rm cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz
 
+# 添加 LLVM 官方仓库
+RUN wget https://apt.llvm.org/llvm.sh && \
+    chmod +x llvm.sh && \
+    ./llvm.sh 18
+
+# 检查 clang 版本
+RUN clang --version
+
+# 设置 clang 为默认编译器
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100 && \
+    update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
+
 # 解压和配置Yadcc
 ADD yadcc.tar.gz /usr/local/
 
 # 创建必要的软链接
-RUN ln -sf /usr/local/gcc-9.2.0/bin/gcc /usr/local/bin/gcc && \
-    ln -sf /usr/local/gcc-9.2.0/bin/g++ /usr/local/bin/g++
+RUN ln -sf /usr/local/gcc-9.5.0/bin/gcc /usr/local/bin/gcc && \
+    ln -sf /usr/local/gcc-9.5.0/bin/g++ /usr/local/bin/g++
 
 # 安装指定版本的 Python
 ARG PYTHON_VERSION=3.6.8
