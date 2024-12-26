@@ -63,5 +63,16 @@ spec:
             requests:
               cpu: {{ required "client.cpuRequire is required" .Values.client.cpuRequire }}
               memory: {{ required "client.memoryRequire is required" .Values.client.memoryRequire }}
+
+      # TODO: NFS挂载应该优先使用卷方式
+      #     volumeMounts:
+      #     - name: nfs-volume
+      #       mountPath: /cloud_data
+      # volumes:
+      # - name: nfs-volume
+      #   nfs:
+      #     server: cnsha0afbc7e6913a6.vpc-22iuqen56h4ao7r2qr1yn8icd.nas.ivolces.com
+      #     path: /enas-cnsha0afbc7e6913a6
+      #     readOnly: false
 {{- end }}
 
