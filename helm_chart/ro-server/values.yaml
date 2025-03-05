@@ -3,7 +3,7 @@ service: ro-server-ci
 imagePullSecret: ""
 
 yadccToken: rocompileclient
-yadccServantTokens: rocompileservant
+yadccServantTokens: xxxxxxxxxxx
 # icecc客户端
 client:
   running: False
