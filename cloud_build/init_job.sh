@@ -28,7 +28,7 @@ cd ${chart_repo}
 # k8s API
 chmod 400 "${CODOvke_ro_server_builder}"
 export KUBECONFIG="${CODOvke_ro_server_builder}"
-kubectl config use-context "ccrkfr5c9s3ub33bt6nu0@19460168-kcrki5v0qrrkk94f1iprg"
+kubectl config use-context "xxxxxxx"
 
 # 初始化编译环境，检查命名空间是否存在
 if ! kubectl get namespace "$namespace" > /dev/null 2>&1; then

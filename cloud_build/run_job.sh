@@ -117,7 +117,7 @@ function check_job_status() {
 # k8s API
 chmod 400 "${CODOvke_ro_server_builder}"
 export KUBECONFIG="${CODOvke_ro_server_builder}"
-kubectl config use-context "ccrkfr5c9s3ub33bt6nu0@19460168-kcrki5v0qrrkk94f1iprg"
+kubectl config use-context "xxxxxxxx"
 
 if ! kubectl get namespace "$namespace" > /dev/null 2>&1; then
   echo "命名空间 $namespace 不存在 ..."
